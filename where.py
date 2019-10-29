@@ -448,8 +448,7 @@ def pollution_func():
 
 def add_justice_to_ready_data_frame(ready_data_frame):
     justice_df = pd.read_csv("./world_justice_project/world_justice.csv")
-    aggregate_df = pd.merge(ready_data_frame, justice_df[['overall_score', 'country']],
-                            on="country", how='outer').rename(columns={"overall_score": "justice_index"})
+    aggregate_df = pd.merge(ready_data_frame, justice_df[['overall_score', 'country']], on="country", how='outer').rename(columns={"overall_score": "justice_index"})
     return aggregate_df
 
 
