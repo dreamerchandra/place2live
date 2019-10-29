@@ -446,6 +446,13 @@ def pollution_func():
         )
 
 
+def add_justice_to_ready_data_frame(ready_data_frame):
+    justice_df = pd.read_csv("./world_justice_project/world_justice.csv")
+    aggregate_df = pd.merge(ready_data_frame, justice_df[['overall_score', 'country']],
+                            on="country", how='outer').rename(columns={"overall_score": "justice_index"})
+    return aggregate_df
+
+
 values = {
     "purchasing_power_index": 200,
     "safety_index": 200,
@@ -518,5 +525,6 @@ if __name__ == "__main__":
         )
     else:
         print_out_df["life expectancy"] = life_expectancy
+        print_out_df = add_justice_to_ready_data_frame(print_out_df)
         with pd.option_context("display.max_rows", None, "display.max_columns", None):
             print(text_color(print_out_df, text_type.ANSWER))
