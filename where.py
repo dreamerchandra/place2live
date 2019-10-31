@@ -1,3 +1,5 @@
+""" TODO: add a propper docstring here to stop the build error"""
+import dbm
 import difflib
 from datetime import datetime
 
@@ -38,9 +40,9 @@ def damerau_levenshtein_distance(s1, s2):
     lenstr1 = len(s1)
     lenstr2 = len(s2)
     for i in range(-1, lenstr1+1):
-        d[(i, -1)] = i+1
-    for j in range(-1, lenstr2+1):
-        d[(-1, j)] = j+1
+        d[(i, -1)] = i + 1
+    for j in range(-1, lenstr2 + 1):
+        d[(-1, j)] = j + 1
 
     for i in range(lenstr1):
         for j in range(lenstr2):
@@ -49,14 +51,14 @@ def damerau_levenshtein_distance(s1, s2):
             else:
                 cost = 1
             d[(i, j)] = min(
-                           d[(i-1, j)] + 1,  # deletion
-                           d[(i, j-1)] + 1,  # insertion
-                           d[(i-1, j-1)] + cost,  # substitution
+                d[(i - 1, j)] + 1,  # deletion
+                d[(i, j - 1)] + 1,  # insertion
+                d[(i - 1, j - 1)] + cost,  # substitution
             )
-            if i and j and s1[i] == s2[j-1] and s1[i-1] == s2[j]:
-                d[(i, j)] = min(d[(i, j)], d[i-2, j-2] + cost)  # transposition
+            if i and j and s1[i] == s2[j - 1] and s1[i - 1] == s2[j]:
+                d[(i, j)] = min(d[(i, j)], d[i - 2, j - 2] + cost)  # transposition
 
-    return d[lenstr1-1, lenstr2-1]
+    return d[lenstr1 - 1, lenstr2 - 1]
 
 
 def displacement_col(dis_dict, df):
@@ -448,8 +450,21 @@ def pollution_func():
 
 def add_justice_to_ready_data_frame(ready_data_frame):
     justice_df = pd.read_csv("./world_justice_project/world_justice.csv")
-    aggregate_df = pd.merge(ready_data_frame, justice_df[['overall_score', 'country']], on="country", how='outer').rename(columns={"overall_score": "justice_index"})
+    aggregate_df = pd.merge(ready_data_frame, justice_df[['overall_score', 'country']], on="country", how='outer').rename(
+        columns={"overall_score": "justice_index"})
     return aggregate_df
+
+def cached_request(api_url):
+    """Checks if the data for the url is in the dbm cache and returns the result.
+    If not, requests it, stores in the database and returns."""
+
+    db = dbm.open('cache.dbm', 'c')
+    data = db.get(api_url, False)
+    if not data:
+        response = requests.get(api_url)
+        data = response.json()
+        db[api_url] = data
+    return data
 
 
 values = {
@@ -506,8 +521,7 @@ if __name__ == "__main__":
         countries = list(print_out_df["country"])
         for value in countries:
             api_url = get_url(value, YOUR_AGE, YOUR_GENDER)
-            response = requests.get(api_url)
-            data = response.json()
+            data = cached_request(api_url)
             try:
                 total_years = int(YOUR_AGE) + data["remaining_life_expectancy"]
                 total_years = round(total_years, 2)
